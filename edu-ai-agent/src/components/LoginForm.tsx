@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AuthProviderButtons from './AuthProviderButtons';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -20,6 +21,8 @@ export default function LoginForm() {
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Edu AI Agent</h1>
       <p className="text-gray-600 mb-6">Teacher Lesson Planner</p>
       
+      <AuthProviderButtons className="mb-4" />
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
