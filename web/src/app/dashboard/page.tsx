@@ -8,7 +8,7 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem('teacher_email');
+    const stored = localStorage.getItem('user_email');
     if (!stored) {
       router.push('/');
     } else {
@@ -17,7 +17,7 @@ export default function Dashboard() {
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('teacher_email');
+    localStorage.removeItem('user_email');
     router.push('/');
   };
 
@@ -36,7 +36,7 @@ export default function Dashboard() {
         
         <div className="bg-white rounded-lg shadow p-6">
           <p className="text-gray-700">Welcome, {email}!</p>
-          <p className="text-gray-500 mt-2">Lesson plan interface coming soon...</p>
+          <p className="text-gray-500 mt-2">Dashboard interface coming soon...</p>
         </div>
       </div>
     </div>

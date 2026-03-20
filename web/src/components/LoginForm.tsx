@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { appConfig } from '@/config/app';
 import AuthProviderButtons from './AuthProviderButtons';
 
 export default function LoginForm() {
@@ -11,16 +12,15 @@ export default function LoginForm() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // Phase 1: No actual auth, just demo navigation
-    localStorage.setItem('teacher_email', email);
+    // Store user email in localStorage (replace with API auth in Phase 2)
+    localStorage.setItem('user_email', email);
     router.push('/dashboard');
   };
 
   return (
     <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Edu AI Agent</h1>
-      <p className="text-gray-600 mb-6">Teacher Lesson Planner</p>
-      
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">{appConfig.name}</h1>
+      <p className="text-gray-600 mb-6">{appConfig.subtitle}</p>
       <AuthProviderButtons className="mb-4" />
 
       <form onSubmit={handleSubmit} className="space-y-4">
