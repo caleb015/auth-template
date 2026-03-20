@@ -1,6 +1,6 @@
 "use client";
 
-import { FaGoogle, FaFacebook, FaTwitter, FaXTwitter } from "react-icons/fa6";
+import { FaGoogle, FaFacebook, FaTwitter } from "react-icons/fa";
 import { AUTH_PROVIDERS } from "../config/authProviders";
 
 export default function AuthProviderButtons({ className = "" }: { className?: string }) {
@@ -49,7 +49,7 @@ export default function AuthProviderButtons({ className = "" }: { className?: st
           onClick={() => onClick("x")}
           className="w-full bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-3 font-medium"
         >
-          <FaXTwitter className="text-lg text-black" />
+          <FaTwitter className="text-lg text-black" />
           Continue with X
         </button>
       )}
