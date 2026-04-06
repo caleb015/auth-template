@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, UseGuards, Post, Body } from '@nestjs/common';
 import type { Response } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { LocalAuthGuard } from './local-auth.guard';
 import { AuthService } from './auth.service';
 
 const ALLOWED_PROVIDERS = ['google', 'facebook', 'twitter', 'x'];
@@ -39,5 +40,18 @@ export class AuthController {
   @Get('me')
   async me(@Req() req) {
     return req.user;
+  }
+
+  @Post('register')
+  async register(@Body() body: { email: string; password: string }) {
+    const user = await this.authService.register(body.email, body.password);
+    const { password: _, ...result } = user as any;
+    return result;
+  }
+
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  async login(@Req() req) {
+    return this.authService.login(req.user);
   }
 }

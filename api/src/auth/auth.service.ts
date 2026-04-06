@@ -6,20 +6,36 @@ import { UsersService } from '../users/users.service';
 export class AuthService {
   constructor(private usersService: UsersService, private jwtService: JwtService) {}
 
-  async validateUser(email: string): Promise<any> {
-    const user = await this.usersService.getByEmail(email);
-    if (user) {
-      const { id, email, provider } = user;
-      return { id, email, provider };
+  async validateUser(email: string, password?: string): Promise<any> {
+    if (password) {
+      const user = await this.usersService.validateLocalUser(email, password);
+      if (!user) return null;
+      const { password: _, ...result } = user as any;
+      return result;
     }
-    return null;
+
+    const user = await this.usersService.getByEmail(email);
+    if (!user) return null;
+    return { id: user.id, email: user.email, provider: user.provider };
   }
 
-  async login(user: { email: string; provider: string; providerId: string }) {
-    const existing = await this.usersService.getByProvider(user.provider, user.providerId);
+  async login(user: { id?: string; email: string; provider: string; providerId?: string }): Promise<any> {
+    if (user.id) {
+      const payload = { email: user.email, provider: user.provider };
+      return {
+        access_token: this.jwtService.sign(payload, { subject: user.id }),
+        user: { id: user.id, email: user.email, provider: user.provider },
+      };
+    }
+
+    const existing = await this.usersService.getByProvider(user.provider, user.providerId || '');
     const savedUser = existing
       ? existing
-      : await this.usersService.create({ email: user.email, provider: user.provider, providerId: user.providerId });
+      : await this.usersService.create({
+          email: user.email,
+          provider: user.provider,
+          providerId: user.providerId || '',
+        });
 
     const payload = { email: savedUser.email, provider: savedUser.provider };
     return {
@@ -34,5 +50,9 @@ export class AuthService {
       throw new UnauthorizedException();
     }
     return user;
+  }
+
+  async register(email: string, password: string) {
+    return this.usersService.createLocalUser(email, password);
   }
 }
