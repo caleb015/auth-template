@@ -9,10 +9,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     const stored = localStorage.getItem('user_email');
-    if (!stored) {
+    const token = localStorage.getItem('access_token');
+    if (!stored || !token) {
       router.push('/');
     } else {
       setEmail(stored);
+      // Optional: verify token by calling /auth/me in backend for future phase.
     }
   }, [router]);
 

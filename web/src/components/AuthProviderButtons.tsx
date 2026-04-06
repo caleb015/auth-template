@@ -2,14 +2,30 @@
 
 import { FaGoogle, FaFacebook, FaTwitter } from "react-icons/fa";
 import { AUTH_PROVIDERS } from "../config/authProviders";
+import { appConfig } from "@/config/app";
 
 export default function AuthProviderButtons({ className = "" }: { className?: string }) {
-  const onClick = (provider: string) => {
-    // Placeholder action — real OAuth integration to be implemented later
-    // Keeping simple for Phase 1 static prototype
-    // eslint-disable-next-line no-console
-    console.log(`Auth placeholder clicked: ${provider}`);
-    alert(`Auth placeholder: ${provider}`);
+  const onClick = async (provider: string) => {
+    if (!AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS]) {
+      alert('Provider disabled');
+      return;
+    }
+
+    try {
+      const email = `${provider}.user@edu-ai-agent.local`;
+      const response = await fetch(`${appConfig.apiUrl}/auth/callback/${provider}?email=${encodeURIComponent(email)}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+      }
+      const data = await response.json();
+
+      localStorage.setItem('user_email', data.user?.email || email);
+      localStorage.setItem('access_token', data.access_token);
+      window.location.href = '/dashboard';
+    } catch (err) {
+      alert('OAuth error: ' + (err as Error).message);
+    }
   };
 
   return (
