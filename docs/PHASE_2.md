@@ -1,6 +1,6 @@
 # Phase 2: Generic Auth Web App Template
 
-**Date:** 2026-03-20  
+**Date:** 2026-03-20 (updated 2026-05-25)
 **Status:** In Progress  
 **Goal:** Build a reusable, cloneable authentication template (not edu-ai-agent specific)
 
@@ -11,10 +11,11 @@
 Build a **generic web app template** with:
 - ✅ Generic Next.js login UI (completed)
 - ✅ Generic branding via environment variables (completed)
-- ⏳ NestJS auth backend with OAuth providers (in progress)
-- ⏳ User persistence via PostgreSQL + Prisma (in progress)
-- ⏳ JWT token management (to build)
-- ⏳ End-to-end OAuth flow + dashboard redirect (to build)
+- ✅ NestJS auth backend — local email/password complete
+- ✅ User persistence via PostgreSQL + Prisma (complete)
+- ✅ JWT token management (complete)
+- ✅ End-to-end local auth flow + dashboard redirect (complete)
+- ⏳ OAuth providers — Google in progress, Facebook/Twitter/X pending
 - ⏸️ **NO lesson-plan/teacher logic yet** — save for Phase 3
 
 ---
@@ -74,35 +75,44 @@ auth-template/
 ## Implementation Checklist (Phase 2)
 
 ### Backend (`api/`)
-- [ ] Prisma schema with `User` model (email, provider, providerId, timestamps)
-- [ ] `auth.service.ts` — OAuth flow handlers (login, callback, token refresh)
-- [ ] `jwt.service.ts` — JWT generation and validation
-- [ ] Passport strategies: Google, Facebook, Twitter, X
-- [ ] Auth endpoints:
-  - `POST /auth/oauth/:provider` — initiate OAuth
-  - `GET /auth/callback/:provider` — OAuth callback handler
-  - `POST /auth/logout` — logout
+- [x] Prisma schema with `User` model (email, provider, providerId, timestamps)
+- [x] `auth.service.ts` — local auth + OAuth user find-or-create + JWT login
+- [x] JWT generation and validation via `@nestjs/jwt` + `JwtStrategy`
+- [x] `LocalStrategy` — email/password via bcrypt
+- [x] Auth endpoints:
+  - `POST /auth/register` — create local user
+  - `POST /auth/login` — local login, returns JWT
   - `GET /auth/me` — get current user (JWT protected)
-- [ ] CORS + cookie/token handling
+  - `GET /auth/oauth/:provider` — stub (real flow pending per provider)
+  - `GET /auth/callback/:provider` — stub (real flow pending per provider)
+- [x] CORS configured
+- [ ] Passport strategies: Google (in progress), Facebook, Twitter, X
+- [ ] `POST /auth/logout` endpoint (currently handled client-side only)
 
 ### Frontend (`web/`)
-- [ ] Connect login buttons to `api/auth/oauth/:provider`
-- [ ] Handle OAuth redirect → `api/auth/callback/:provider`
-- [ ] Store JWT token (localStorage or httpOnly cookie)
-- [ ] Dashboard: fetch `/auth/me` to validate session
-- [ ] Logout: clear token + redirect to login
+- [x] LoginForm POSTs to `/auth/login` and `/auth/register`
+- [x] JWT stored in localStorage; `logged_in` cookie set for middleware
+- [x] Dashboard: fetches `/auth/me` to validate session, shows email
+- [x] Logout: clears localStorage + cookie, redirects to login
+- [x] Middleware protects `/dashboard/:path*` via `logged_in` cookie
+- [ ] Connect OAuth buttons to real `/auth/oauth/:provider` redirects
+- [ ] `/auth/callback` page to receive token from backend OAuth redirect
 
 ### Testing
-- [ ] Manual OAuth flow (all 4 providers)
-- [ ] Token persistence across page reloads
-- [ ] Logout clears session
+- [x] Local email/password login end-to-end
+- [x] Registration flow
+- [x] Invalid credentials show error message
+- [x] Token persistence across page reloads
+- [x] Logout clears session
+- [ ] OAuth flow (all 4 providers)
 - [ ] Invalid/expired tokens redirect to login
 
 ### Documentation
 - [ ] `SETUP.md` — step-by-step to run locally
-- [ ] `.env.example` files (both `web/` and `api/`)
+- [x] `.env.example` — `api/`
+- [ ] `.env.example` — `web/`
 - [ ] OAuth provider setup guide (Google, Facebook, Twitter, X credentials)
-- [ ] Deployment notes (Vercel for `web/`, standalone `api/` server)
+- [ ] Deployment notes
 
 ---
 
@@ -179,32 +189,32 @@ Once Phase 2 is complete and template is stable:
 
 ## Repository State
 
-**Current:**
-- `web/` generic login UI ✅
-- `api/` empty NestJS scaffold ✅
-- Prisma initialized (needs schema)
-- Docs updated ✅
+**Current (2026-05-25):**
+- `web/` — Next.js 15, pnpm, login/register/dashboard wired to API ✅
+- `api/` — NestJS, local auth fully working, OAuth stubs in place ✅
+- Prisma User model migrated and running in Docker Postgres ✅
+- Workspace moved to WSL native filesystem (`~/projects/edu-ai-agent`) ✅
 
 **Next:**
-- Build `api/auth` module (strategies + services)
-- Wire frontend → backend OAuth flow
-- Test end-to-end
+- Implement Google OAuth (see `PHASE_2_GOOGLE_OAUTH.md`)
+- Follow with Facebook, Twitter, X using same pattern
+- Write `SETUP.md` for local dev onboarding
 
 ---
 
 ## Quick Commands
 
 ```bash
-# Frontend
-cd web
-npm install
-npm run dev
+# Postgres (Docker)
+docker start edu-ai-db
 
 # Backend
 cd api
-npm install
-npx prisma migrate dev
 npm run start:dev
+
+# Frontend
+cd web
+pnpm dev
 ```
 
 ---
