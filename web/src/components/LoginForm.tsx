@@ -14,8 +14,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async ({ preventDefault }: { preventDefault(): void }) => {
-    preventDefault();
+  const submitAsync = async () => {
     setError('');
     setSuccessMsg('');
     setIsLoading(true);
@@ -53,6 +52,11 @@ export default function LoginForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    void submitAsync();
   };
 
   const toggleMode = () => {
