@@ -5,20 +5,20 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
   constructor(
     config: ConfigService,
     private authService: AuthService,
   ) {
     super({
-      authorizationURL: config.getOrThrow('GOOGLE_AUTH_URL'),
-      tokenURL: config.getOrThrow('GOOGLE_TOKEN_URL'),
-      clientID: config.getOrThrow('GOOGLE_CLIENT_ID'),
-      clientSecret: config.getOrThrow('GOOGLE_CLIENT_SECRET'),
-      callbackURL: config.getOrThrow('GOOGLE_CALLBACK_URL'),
-      scope: ['openid', 'email', 'profile'],
+      authorizationURL: config.getOrThrow('FACEBOOK_AUTH_URL'),
+      tokenURL: config.getOrThrow('FACEBOOK_TOKEN_URL'),
+      clientID: config.getOrThrow('FACEBOOK_APP_ID'),
+      clientSecret: config.getOrThrow('FACEBOOK_APP_SECRET'),
+      callbackURL: config.getOrThrow('FACEBOOK_CALLBACK_URL'),
+      scope: ['email'],
     });
-    this.userInfoURL = config.getOrThrow('GOOGLE_USERINFO_URL');
+    this.userInfoURL = config.getOrThrow('FACEBOOK_USERINFO_URL');
   }
 
   private userInfoURL: string;
@@ -31,7 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const email = profile.email ?? profile.sub;
     const providerId = profile.sub ?? email;
     try {
-      return await this.authService.login({ email, provider: 'google', providerId });
+      return await this.authService.login({ email, provider: 'facebook', providerId });
     } catch (err: any) {
       return { __error: err.message };
     }

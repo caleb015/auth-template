@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 
@@ -28,9 +28,17 @@ export class AuthService {
       };
     }
 
-    const existing = await this.usersService.getByProvider(user.provider, user.providerId || '');
-    const savedUser = existing
-      ? existing
+    const byProvider = await this.usersService.getByProvider(user.provider, user.providerId || '');
+    if (!byProvider) {
+      const byEmail = await this.usersService.getByEmail(user.email);
+      if (byEmail) {
+        throw new ConflictException(
+          `An account with this email already exists using ${byEmail.provider}. Please sign in with ${byEmail.provider} instead.`,
+        );
+      }
+    }
+    const savedUser = byProvider
+      ? byProvider
       : await this.usersService.create({
           email: user.email,
           provider: user.provider,

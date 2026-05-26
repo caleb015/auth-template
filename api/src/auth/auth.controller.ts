@@ -23,15 +23,33 @@ export class AuthController {
   @Get('callback/google')
   @UseGuards(AuthGuard('google'))
   googleCallback(@Req() req: Request, @Res() res: Response) {
-    const { access_token } = req.user as any;
     const frontendUrl = this.configService.get('FRONTEND_URL');
-    res.redirect(`${frontendUrl}/auth/callback?token=${access_token}`);
+    const user = req.user as any;
+    if (user.__error) {
+      return res.redirect(`${frontendUrl}/auth/callback?error=${encodeURIComponent(user.__error)}`);
+    }
+    res.redirect(`${frontendUrl}/auth/callback?token=${user.access_token}`);
+  }
+
+  @Get('oauth/facebook')
+  @UseGuards(AuthGuard('facebook'))
+  facebookLogin() {}
+
+  @Get('callback/facebook')
+  @UseGuards(AuthGuard('facebook'))
+  facebookCallback(@Req() req: Request, @Res() res: Response) {
+    const frontendUrl = this.configService.get('FRONTEND_URL');
+    const user = req.user as any;
+    if (user.__error) {
+      return res.redirect(`${frontendUrl}/auth/callback?error=${encodeURIComponent(user.__error)}`);
+    }
+    res.redirect(`${frontendUrl}/auth/callback?token=${user.access_token}`);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Req() req) {
-    return req.user;
+  async me(@Req() req: Request) {
+    return (req as any).user;
   }
 
   @Post('register')
