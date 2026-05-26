@@ -24,13 +24,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   private userInfoURL: string;
 
   async validate(accessToken: string): Promise<any> {
-    const res = await fetch(this.userInfoURL, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    const profile = await res.json() as any;
-    const email = profile.email ?? profile.sub;
-    const providerId = profile.sub ?? email;
     try {
+      const res = await fetch(this.userInfoURL, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const profile = await res.json() as any;
+      const email = profile.email ?? profile.sub;
+      const providerId = profile.sub ?? email;
       return await this.authService.login({ email, provider: 'google', providerId });
     } catch (err: any) {
       return { __error: err.message };
