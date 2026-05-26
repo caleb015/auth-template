@@ -1,5 +1,8 @@
 # Phase 2: Google OAuth Implementation Plan
 
+> **Status: Implemented (2026-05-26)**  
+> Google, Facebook, and X OAuth are all working end-to-end. See divergence notes below before following the steps in this doc — the actual implementation used `passport-oauth2` (generic) rather than `passport-google-oauth20`.
+
 ## Goal
 Replace the simulated OAuth stub with a real Google OAuth 2.0 flow using `passport-google-oauth20`, which is already installed. Once Google is working, Facebook/Twitter/X follow the same pattern.
 
@@ -177,3 +180,17 @@ Leave Facebook/Twitter/X buttons as stubs (disabled or unchanged) until implemen
 - Token is passed as a URL query param — acceptable for localhost dev. For production, prefer a short-lived code exchanged server-side or an httpOnly cookie.
 - Facebook requires HTTPS even for dev (use ngrok). Twitter/X requires app approval. Tackle those after Google is confirmed working.
 - `passport-twitter` (v1) uses OAuth 1.0a; consider `passport-twitter-oauth2` for the newer flow when the time comes.
+
+---
+
+## Implementation Divergence (as-built)
+
+The plan above describes using `passport-google-oauth20` (provider-specific). The actual implementation uses **`passport-oauth2`** (generic) for all three providers. This was a deliberate choice:
+
+- All OAuth endpoint URLs (`authorizationURL`, `tokenURL`, `userInfoURL`) are env vars
+- Swapping from mock server → real provider in prod requires only `.env` changes, no code changes
+- The `validate()` method manually fetches userinfo using the access token, which works identically across all three providers
+
+The `AuthProviderButtons` component was also changed from buttons with `onClick` handlers to **`<a>` anchor tags** with `href` attributes pointing directly to the backend OAuth routes. This avoids `window.location` assignment (which jsdom@26 makes untestable) and is semantically more correct for navigation links.
+
+A **mock OAuth server** (`api/scripts/mock-oauth-server.ts`, using `oauth2-mock-server` on port 8080) was added for local dev. It serves per-provider mock profiles keyed by `client_id`, allowing all three OAuth buttons to be tested simultaneously without real credentials.
