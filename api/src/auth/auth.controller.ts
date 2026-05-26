@@ -46,6 +46,21 @@ export class AuthController {
     res.redirect(`${frontendUrl}/auth/callback?token=${user.access_token}`);
   }
 
+  @Get('oauth/x')
+  @UseGuards(AuthGuard('x'))
+  xLogin() {}
+
+  @Get('callback/x')
+  @UseGuards(AuthGuard('x'))
+  xCallback(@Req() req: Request, @Res() res: Response) {
+    const frontendUrl = this.configService.get('FRONTEND_URL');
+    const user = req.user as any;
+    if (user.__error) {
+      return res.redirect(`${frontendUrl}/auth/callback?error=${encodeURIComponent(user.__error)}`);
+    }
+    res.redirect(`${frontendUrl}/auth/callback?token=${user.access_token}`);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req: Request) {

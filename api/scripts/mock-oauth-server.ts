@@ -11,6 +11,11 @@ const PROFILES: Record<string, { sub: string; email: string; name: string }> = {
     email: 'mockuser.facebook@example.com',
     name: 'Mock Facebook User',
   },
+  'mock-x-client-id': {
+    sub: 'mock-x-001',
+    email: 'mockuser.x@example.com',
+    name: 'Mock X User',
+  },
 };
 
 const DEFAULT_PROFILE = {
