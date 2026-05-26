@@ -6,27 +6,12 @@ import { AUTH_PROVIDERS } from "../config/authProviders";
 import { appConfig } from "@/config/app";
 
 export default function AuthProviderButtons({ className = "" }: { className?: string }) {
-  const onClick = async (provider: string) => {
+  const onClick = (provider: string) => {
     if (!AUTH_PROVIDERS[provider as keyof typeof AUTH_PROVIDERS]) {
       alert('Provider disabled');
       return;
     }
-
-    try {
-      const email = `${provider}.user@edu-ai-agent.local`;
-      const response = await fetch(`${appConfig.apiUrl}/auth/callback/${provider}?email=${encodeURIComponent(email)}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
-      }
-      const data = await response.json();
-
-      localStorage.setItem('user_email', data.user?.email || email);
-      localStorage.setItem('access_token', data.access_token);
-      window.location.href = '/dashboard';
-    } catch (err) {
-      alert('OAuth error: ' + (err as Error).message);
-    }
+    window.location.href = `${appConfig.apiUrl}/auth/oauth/${provider}`;
   };
 
   return (

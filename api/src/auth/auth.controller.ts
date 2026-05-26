@@ -1,40 +1,31 @@
-import { Controller, Get, Param, Query, Req, Res, UseGuards, Post, Body, UnauthorizedException } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Get, Req, Res, UseGuards, Post, Body, UnauthorizedException } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 
-const ALLOWED_PROVIDERS = ['google', 'facebook', 'twitter', 'x'];
-
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  @Get('oauth/:provider')
-  async oauthRedirect(@Param('provider') provider: string, @Res() res: Response) {
-    if (!ALLOWED_PROVIDERS.includes(provider)) {
-      return res.status(400).json({ error: 'Provider not supported' });
-    }
-
-    // Simulated flow for Phase 2 template if no external OAuth configured.
-    // In real flow we would use passport strategy.
-    return res.json({ message: `Use /auth/callback/${provider}?email=` });
+  @Get('oauth/google')
+  @UseGuards(AuthGuard('google'))
+  googleLogin() {
+    // Passport redirects to the OAuth provider — no body needed
   }
 
-  @Get('callback/:provider')
-  async oauthCallback(
-    @Param('provider') provider: string,
-    @Query('email') email = 'teacher@example.com',
-    @Res() res: Response,
-  ) {
-    if (!ALLOWED_PROVIDERS.includes(provider)) {
-      return res.status(400).json({ error: 'Provider not supported' });
-    }
-
-    const providerId = email;
-    const payload = await this.authService.login({ email: String(email), provider, providerId });
-    return res.json(payload);
+  @Get('callback/google')
+  @UseGuards(AuthGuard('google'))
+  googleCallback(@Req() req: Request, @Res() res: Response) {
+    const { access_token } = req.user as any;
+    const frontendUrl = this.configService.get('FRONTEND_URL');
+    res.redirect(`${frontendUrl}/auth/callback?token=${access_token}`);
   }
 
   @UseGuards(JwtAuthGuard)
