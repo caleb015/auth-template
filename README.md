@@ -1,4 +1,4 @@
-# Edu AI Agent — Auth Template
+# Auth Template
 
 A reusable, full-stack authentication template with email/password login, OAuth social login, JWT sessions, and a profile management dashboard. Built to be cloned and customized as the auth foundation for any web app.
 
@@ -31,7 +31,7 @@ A reusable, full-stack authentication template with email/password login, OAuth 
 
 ```bash
 # Start Postgres
-docker run --name edu-ai-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=edu_ai_agent -p 5432:5432 -d postgres:16
+docker run --name auth-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=auth_template -p 5432:5432 -d postgres:16
 
 # Run DB migrations
 cd api
@@ -45,7 +45,7 @@ cp api/.env.example api/.env
 
 **Terminal 1 — Postgres**
 ```bash
-docker start edu-ai-db
+docker start auth-db
 ```
 
 **Terminal 2 — Mock OAuth server** (runs on port 8080)

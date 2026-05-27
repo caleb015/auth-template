@@ -1,12 +1,14 @@
 # Phase 2: Local Username/Password Auth Setup
 
+**Status: Complete (2026-05-25)**
+
 ## Goal
 Add a local authentication path (email + password) to the existing NestJS + Prisma backend and integrate with the existing frontend stub.
 
 ## 1. Environment setup
 - Copy `api/.env.example` to `api/.env`.
 - Set PostgreSQL connection:
-  - `DATABASE_URL=postgresql://user:password@localhost:5432/edu_ai_agent?schema=public`
+  - `DATABASE_URL=postgresql://user:password@localhost:5432/auth_template?schema=public`
   - `JWT_SECRET=supersecret-please-change`  
   - `JWT_EXPIRES_IN=7d`
 

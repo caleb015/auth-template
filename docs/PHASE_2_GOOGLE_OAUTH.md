@@ -163,9 +163,11 @@ Leave Facebook/Twitter/X buttons as stubs (disabled or unchanged) until implemen
 
 ---
 
-## 8. Testing checklist
+## 8. Testing checklist (production credentials only)
 
-- [ ] `.env` has all four Google vars set
+These items apply when switching from the mock OAuth server to real provider credentials. They are not required for local dev (which uses `npm run mock:oauth`).
+
+- [ ] `.env` has all four Google vars set (real credentials from Google Cloud Console)
 - [ ] `http://localhost:3001/auth/callback/google` is in the Google Console redirect URIs
 - [ ] Clicking "Continue with Google" opens Google consent screen
 - [ ] After consent, browser lands on `/auth/callback?token=...`

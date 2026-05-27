@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-20 (updated 2026-05-27)
 **Status:** Feature-complete — production credentials and E2E tests pending
-**Goal:** Build a reusable, cloneable authentication template (not edu-ai-agent specific)
+**Goal:** Build a reusable, cloneable authentication template
 
 ---
 
@@ -163,7 +163,7 @@ auth-template/
 ```env
 PORT=3001
 FRONTEND_URL=http://localhost:3000
-DATABASE_URL=postgresql://user:password@localhost:5432/edu_ai_agent?schema=public
+DATABASE_URL=postgresql://user:password@localhost:5432/auth_template?schema=public
 JWT_SECRET=                          # required — app will not start if missing
 JWT_EXPIRES_IN=7d
 
@@ -215,13 +215,13 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ---
 
-## After Phase 2: Phase 3 (edu-ai-agent specifics)
+## After Phase 2: Phase 3 (app-specific features)
 
 Once Phase 2 is stable:
 - Add `lesson_plans`, `lesson_plan_versions` tables to Prisma
 - Build lesson plan CRUD endpoints in `api/`
 - Add lesson plan UI to `web/` dashboard
-- Rename placeholder branding to "Edu AI Agent"
+- Customize branding for the target app
 - Integrate AI generation endpoints (Claude API)
 
 ---
@@ -236,7 +236,7 @@ Once Phase 2 is stable:
 - 75+ backend unit tests + 44 frontend unit tests ✅
 - `JWT_SECRET` required at startup via `getOrThrow` — no silent weak default ✅
 - Prisma migrations applied, running in Docker Postgres ✅
-- Workspace on WSL native filesystem (`~/projects/edu-ai-agent`) ✅
+- Workspace on WSL native filesystem ✅
 
 **Next:**
 - Wire up real production credentials

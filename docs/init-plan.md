@@ -189,24 +189,27 @@ This plan intentionally optimizes for:
 
 ## 13. Implementation Progress
 
-### Phase 1 – Static UI Prototype
+### Phase 1 – Static UI Prototype ✅ Complete (2026-03-20)
 
-#### ✅ Completed
 - [x] Create Next.js app (App Router, TypeScript)
-  - Created at `edu-ai-agent/` directory
-  - Configured with ESLint, Tailwind CSS, TypeScript
-  - Dependencies installed
-- [x] Configure static export for GitHub Pages
-  - Updated `next.config.ts` with `output: 'export'`
-- [x] Implement static login page
-  - Created `src/components/LoginForm.tsx`
-  - Created `src/app/page.tsx` (login route)
+- [x] Configure static export for GitHub Pages (`output: 'export'`)
+- [x] Implement static login page (`LoginForm.tsx`, `page.tsx`)
 - [x] Create dashboard page placeholder
-  - Created `src/app/dashboard/page.tsx`
+- [x] Test locally, build passes
 
-#### 🔄 In Progress
-- [ ] Test locally (`npm run dev`)
+Note: GitHub Pages deployment was de-prioritised once Phase 2 (full-stack) became the focus. The static export config was removed when the backend was added.
 
-#### ⏳ Not Started
-- [ ] Build for static export (`npm run build`)
-- [ ] Push to GitHub and configure Pages deployment
+### Phase 2 – Full Stack Auth Template ✅ Feature-complete (2026-05-27)
+
+See `docs/PHASE_2.md` for the full checklist and current state. Summary:
+- NestJS backend with local auth + OAuth (Google, Facebook, X)
+- PostgreSQL + Prisma (`User` + `LinkedProvider` models)
+- JWT sessions, profile management, multi-provider accounts
+- 75+ backend unit tests, 45 frontend unit tests
+- Production OAuth credentials and E2E guard tests pending
+
+### Phase 3 – App-Specific Features ⏳ Not started
+
+- Lesson plan CRUD (Prisma tables, API endpoints, UI)
+- AI generation via Claude API
+- DepEd standards integration
