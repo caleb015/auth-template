@@ -166,13 +166,32 @@ describe('LoginForm', () => {
 
   // ── register ─────────────────────────────────────────────────────────────────
 
-  it('POSTs to /auth/register in register mode', async () => {
+  it('shows confirm password field only in register mode', async () => {
+    render(<LoginForm />);
+    expect(screen.queryByPlaceholderText('Repeat your password')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    expect(screen.getByPlaceholderText('Repeat your password')).toBeInTheDocument();
+  });
+
+  it('shows error and skips API call when passwords do not match', async () => {
+    render(<LoginForm />);
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    await userEvent.type(screen.getByPlaceholderText('your@email.com'), 'new@example.com');
+    await userEvent.type(screen.getByPlaceholderText(/min\. 8/i), 'password123');
+    await userEvent.type(screen.getByPlaceholderText('Repeat your password'), 'different123');
+    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('POSTs to /auth/register when passwords match', async () => {
     mockFetch(true, {});
     render(<LoginForm />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Register' }));
     await userEvent.type(screen.getByPlaceholderText('your@email.com'), 'new@example.com');
-    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password123');
+    await userEvent.type(screen.getByPlaceholderText(/min\. 8/i), 'password123');
+    await userEvent.type(screen.getByPlaceholderText('Repeat your password'), 'password123');
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }));
 
     await waitFor(() => {
@@ -189,7 +208,8 @@ describe('LoginForm', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Register' }));
     await userEvent.type(screen.getByPlaceholderText('your@email.com'), 'existing@example.com');
-    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password123');
+    await userEvent.type(screen.getByPlaceholderText(/min\. 8/i), 'password123');
+    await userEvent.type(screen.getByPlaceholderText('Repeat your password'), 'password123');
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }));
 
     await waitFor(() => {
@@ -204,12 +224,22 @@ describe('LoginForm', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Register' }));
     await userEvent.type(screen.getByPlaceholderText('your@email.com'), 'new@example.com');
-    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password123');
+    await userEvent.type(screen.getByPlaceholderText(/min\. 8/i), 'password123');
+    await userEvent.type(screen.getByPlaceholderText('Repeat your password'), 'password123');
     await userEvent.click(screen.getByRole('button', { name: 'Create Account' }));
 
     await waitFor(() => {
       expect(screen.getByText(/account created/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
     });
+  });
+
+  it('clears confirm password when switching modes', async () => {
+    render(<LoginForm />);
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    await userEvent.type(screen.getByPlaceholderText('Repeat your password'), 'something');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign In' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    expect(screen.getByPlaceholderText('Repeat your password')).toHaveValue('');
   });
 });
