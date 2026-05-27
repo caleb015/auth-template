@@ -19,7 +19,7 @@ import { XStrategy } from './x.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET') || 'change-me-in-dev',
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') || '7d' },
       }),
     }),

@@ -1,19 +1,23 @@
-# Standard Login and Dashboard
+# Edu AI Agent — Auth Template
 
-A reusable, full-stack authentication template with email/password login, JWT session management, and a protected dashboard. Built to be cloned and customized as the auth foundation for any web app.
+A reusable, full-stack authentication template with email/password login, OAuth social login, JWT sessions, and a profile management dashboard. Built to be cloned and customized as the auth foundation for any web app.
 
 ## Features
 
-- Register and login with email + password
+- Register and sign in with email + password
+- Sign in with Google, Facebook, or X (Twitter)
 - JWT-based sessions stored in localStorage
 - Protected dashboard route (middleware + server-side token verification)
-- Logout clears session
+- Profile management: display name, change password, link/unlink OAuth providers, delete account
+- Multi-provider accounts (link multiple OAuth providers to a single account)
 
 ## Stack
 
 - **Frontend** — Next.js 15 (App Router, TypeScript, Tailwind CSS) — `web/`
 - **Backend** — NestJS (TypeScript, Passport, JWT) — `api/`
 - **Database** — PostgreSQL + Prisma ORM
+- **OAuth** — `passport-oauth2` (generic, all URLs are env vars)
+- **Local dev OAuth** — `oauth2-mock-server` (no real credentials needed)
 
 ## Local Development
 
@@ -21,34 +25,42 @@ A reusable, full-stack authentication template with email/password login, JWT se
 
 - Docker (for Postgres)
 - Node.js 20+ via nvm
-- pnpm (for the frontend)
+- pnpm (frontend only)
 
-### Starting everything up
+### First-time setup
+
+```bash
+# Start Postgres
+docker run --name edu-ai-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=edu_ai_agent -p 5432:5432 -d postgres:16
+
+# Run DB migrations
+cd api
+npx prisma migrate deploy
+
+# Copy env files
+cp api/.env.example api/.env
+```
+
+### Starting everything
 
 **Terminal 1 — Postgres**
 ```bash
 docker start edu-ai-db
 ```
 
-First time only:
+**Terminal 2 — Mock OAuth server** (runs on port 8080)
 ```bash
-docker run --name edu-ai-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=edu_ai_agent -p 5432:5432 -d postgres:16
+cd api
+npm run mock:oauth
 ```
 
-**Terminal 2 — API** (runs on port 3001)
+**Terminal 3 — API** (runs on port 3001)
 ```bash
 cd api
 npm run start:dev
 ```
 
-First time only, run the migration first:
-```bash
-cd api
-npx prisma migrate dev
-npm run start:dev
-```
-
-**Terminal 3 — Frontend** (runs on port 3000)
+**Terminal 4 — Frontend** (runs on port 3000)
 ```bash
 nvm use 20
 cd web
@@ -57,11 +69,48 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Mock OAuth accounts
+
+The local OAuth server returns a distinct profile per provider, keyed by `client_id`. The default profiles are defined in [`api/scripts/mock-oauth-server.ts`](api/scripts/mock-oauth-server.ts):
+
+| Provider | Client ID (`api/.env`) | Mock email |
+|----------|------------------------|------------|
+| Google   | `mock-google-client-id`   | mockuser.google@example.com |
+| Facebook | `mock-facebook-client-id` | mockuser.facebook@example.com |
+| X        | `mock-x-client-id`        | mockuser.x@example.com |
+
+To change a mock profile, edit the `PROFILES` map in `mock-oauth-server.ts` and restart the mock server. Each entry sets the `sub`, `email`, and `name` returned by the userinfo endpoint for that provider.
+
+No real credentials are needed in development. To switch to real providers, replace the `*_AUTH_URL`, `*_TOKEN_URL`, `*_USERINFO_URL`, `*_CLIENT_ID`, and `*_CLIENT_SECRET` values in `api/.env` with credentials from Google Cloud Console, Facebook Developer Portal, or X Developer Portal.
+
+## Running Tests
+
+**Backend**
+```bash
+cd api
+npm test
+```
+
+**Frontend**
+```bash
+nvm use 20
+cd web
+pnpm test
+```
+
 ## Project Structure
 
 ```
 .
-├── web/      # Next.js frontend
-├── api/      # NestJS backend
-└── docs/     # Project plans and documentation
+├── web/          # Next.js frontend
+│   └── src/
+│       ├── app/
+│       │   ├── dashboard/        # Protected dashboard + profile page
+│       │   └── auth/callback/    # OAuth callback handler
+│       └── components/           # LoginForm, AuthProviderButtons
+├── api/          # NestJS backend
+│   ├── src/auth/ # Auth controller, service, strategies, guards, DTOs
+│   ├── src/users/# Users service
+│   └── prisma/   # Schema and migrations
+└── docs/         # Project plans and phase documentation
 ```

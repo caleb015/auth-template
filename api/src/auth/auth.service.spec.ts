@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
@@ -7,19 +8,22 @@ import { UsersService } from '../users/users.service';
 const mockUser = {
   id: 'user-123',
   email: 'test@example.com',
+  name: null,
   password: 'hashed',
-  provider: 'local',
-  providerId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 
 const mockUsersService = {
   validateLocalUser: jest.fn(),
+  getById: jest.fn(),
   getByEmail: jest.fn(),
   getByProvider: jest.fn(),
+  getLinkedProviders: jest.fn(),
   create: jest.fn(),
   createLocalUser: jest.fn(),
+  updateProfile: jest.fn(),
+  updatePassword: jest.fn(),
 };
 
 const mockJwtService = {
@@ -67,11 +71,7 @@ describe('AuthService', () => {
     it('returns user by email when no password provided', async () => {
       mockUsersService.getByEmail.mockResolvedValue(mockUser);
       const result = await service.validateUser('test@example.com');
-      expect(result).toEqual({
-        id: mockUser.id,
-        email: mockUser.email,
-        provider: mockUser.provider,
-      });
+      expect(result).toEqual({ id: mockUser.id, email: mockUser.email });
     });
 
     it('returns null when email not found and no password provided', async () => {
@@ -85,6 +85,7 @@ describe('AuthService', () => {
 
   describe('login — local path (user has id)', () => {
     it('returns access_token and user when id is present', async () => {
+      mockUsersService.getByEmail.mockResolvedValue(mockUser);
       const result = await service.login({
         id: 'user-123',
         email: 'test@example.com',
@@ -93,7 +94,7 @@ describe('AuthService', () => {
       expect(result.access_token).toBe('signed-token');
       expect(result.user.email).toBe('test@example.com');
       expect(mockJwtService.sign).toHaveBeenCalledWith(
-        { email: 'test@example.com', provider: 'local' },
+        { email: 'test@example.com', name: null, hasPassword: true },
         { subject: 'user-123' },
       );
     });
@@ -153,10 +154,7 @@ describe('AuthService', () => {
 
     it('throws ConflictException when email exists under a different provider', async () => {
       mockUsersService.getByProvider.mockResolvedValue(null);
-      mockUsersService.getByEmail.mockResolvedValue({
-        ...mockUser,
-        provider: 'google',
-      });
+      mockUsersService.getByEmail.mockResolvedValue(mockUser);
       await expect(
         service.login({
           email: 'test@example.com',
@@ -166,19 +164,75 @@ describe('AuthService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it('conflict error message names the existing provider', async () => {
+    it('conflict error message does not reveal which provider the account uses', async () => {
       mockUsersService.getByProvider.mockResolvedValue(null);
-      mockUsersService.getByEmail.mockResolvedValue({
-        ...mockUser,
-        provider: 'google',
-      });
+      mockUsersService.getByEmail.mockResolvedValue(mockUser);
       await expect(
         service.login({
           email: 'test@example.com',
           provider: 'facebook',
           providerId: 'fb-001',
         }),
-      ).rejects.toThrow('google');
+      ).rejects.toThrow('method you originally used');
+    });
+  });
+
+  // ── updateProfile ───────────────────────────────────────────────────────────
+
+  describe('updateProfile', () => {
+    it('delegates to usersService.updateProfile and returns the user', async () => {
+      const updated = { ...mockUser, name: 'New Name' };
+      mockUsersService.updateProfile.mockResolvedValue(updated);
+      const result = await service.updateProfile('user-123', 'New Name');
+      expect(mockUsersService.updateProfile).toHaveBeenCalledWith('user-123', { name: 'New Name' });
+      expect(result).toEqual(updated);
+    });
+  });
+
+  // ── changePassword ──────────────────────────────────────────────────────────
+
+  describe('changePassword', () => {
+    it('updates password when current password is correct', async () => {
+      const hashed = await bcrypt.hash('correct', 10);
+      mockUsersService.getById.mockResolvedValue({ ...mockUser, password: hashed });
+      mockUsersService.updatePassword.mockResolvedValue(mockUser);
+      await service.changePassword('user-123', 'correct', 'newpassword');
+      expect(mockUsersService.updatePassword).toHaveBeenCalledWith(
+        'user-123',
+        expect.stringMatching(/^\$2[ab]\$\d+\$/),
+      );
+    });
+
+    it('throws BadRequestException when current password is incorrect', async () => {
+      const hashed = await bcrypt.hash('correct', 10);
+      mockUsersService.getById.mockResolvedValue({ ...mockUser, password: hashed });
+      await expect(
+        service.changePassword('user-123', 'wrong', 'newpassword'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException when user has no password set', async () => {
+      mockUsersService.getById.mockResolvedValue({ ...mockUser, password: null });
+      await expect(
+        service.changePassword('user-123', 'anything', 'newpassword'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException when user is not found', async () => {
+      mockUsersService.getById.mockResolvedValue(null);
+      await expect(
+        service.changePassword('user-123', 'anything', 'newpassword'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('hashes the new password before storing', async () => {
+      const hashed = await bcrypt.hash('correct', 10);
+      mockUsersService.getById.mockResolvedValue({ ...mockUser, password: hashed });
+      mockUsersService.updatePassword.mockResolvedValue(mockUser);
+      await service.changePassword('user-123', 'correct', 'newpassword');
+      const stored = mockUsersService.updatePassword.mock.calls[0][1];
+      expect(stored).not.toBe('newpassword');
+      expect(stored).toMatch(/^\$2[ab]\$\d+\$/);
     });
   });
 
