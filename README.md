@@ -85,13 +85,20 @@ No real credentials are needed in development. To switch to real providers, repl
 
 ## Running Tests
 
-**Backend**
+**Backend unit tests**
 ```bash
 cd api
 npm test
 ```
 
-**Frontend**
+**Backend E2E tests** (requires the test DB to be set up — see `api/.env.test.example`)
+```bash
+cd api
+npm run test:e2e:setup   # first time only — runs migrations against auth_template_test
+npm run test:e2e
+```
+
+**Frontend unit tests**
 ```bash
 nvm use 20
 cd web
@@ -111,6 +118,7 @@ pnpm test
 ├── api/          # NestJS backend
 │   ├── src/auth/ # Auth controller, service, strategies, guards, DTOs
 │   ├── src/users/# Users service
-│   └── prisma/   # Schema and migrations
-└── docs/         # Project plans and phase documentation
+│   ├── prisma/   # Schema and migrations
+│   └── test/     # E2E tests (supertest, real test DB)
+└── docs/         # Architecture and design decision docs
 ```

@@ -94,7 +94,7 @@ All endpoints below are `JwtAuthGuard`-protected.
 - [x] Unit tests — `ProfilePage.test.tsx` (16 cases)
 
 ### Pending
-- [ ] E2E tests — guard enforcement (401 on unauthenticated requests); see `api/test/app.e2e-spec.ts`
+- [x] E2E tests — guard enforcement (401 on unauthenticated requests); see `api/test/auth.e2e-spec.ts`
 - [ ] Production OAuth credentials (Google Cloud Console, Facebook Developer, X Developer Portal)
 
 ---

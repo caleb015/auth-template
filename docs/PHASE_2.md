@@ -1,7 +1,7 @@
 # Phase 2: Generic Auth Web App Template
 
 **Date:** 2026-03-20 (updated 2026-05-27)
-**Status:** Feature-complete — production credentials and E2E tests pending
+**Status:** Feature-complete — production credentials pending
 **Goal:** Build a reusable, cloneable authentication template
 
 ---
@@ -19,9 +19,8 @@ Build a **generic web app template** with:
 - ✅ Frontend callback page + provider conflict error handling
 - ✅ Profile management — display name, change password, link/unlink OAuth providers, delete account
 - ✅ Unit tests — backend (auth controller, auth service, users service, OAuth strategies) + frontend (LoginForm, AuthCallback, AuthProviderButtons, ProfilePage)
+- ✅ E2E tests — guard enforcement (401 no token / bad token, 2xx with valid token) against a real test DB (`auth_template_test`) via supertest
 - ⏳ Production OAuth credentials (Google Cloud, Facebook Developer, X Developer Portal)
-- ⏳ E2E tests — verify guard enforcement (401 on unauthenticated/invalid-token requests, 200/204 on valid token) for all `JwtAuthGuard`-protected routes; guards are not exercised by unit tests. Use `supertest` + existing `api/test/app.e2e-spec.ts` scaffold. Decide whether to hit a real test DB or mock Prisma at the E2E layer before implementing.
-- ⏸️ **NO lesson-plan/teacher logic yet** — save for Phase 3
 
 ---
 
@@ -79,16 +78,18 @@ auth-template/
 │   │   ├── schema.prisma                  (User + LinkedProvider models)
 │   │   └── migrations/
 │   ├── test/
-│   │   └── app.e2e-spec.ts                (scaffold — E2E tests pending)
+│   │   ├── auth.e2e-spec.ts               (27 E2E tests — guard enforcement + happy paths)
+│   │   ├── setup-env.ts                   (loads .env.test before app boots)
+│   │   └── jest-e2e.json
 │   ├── .env.example
+│   ├── .env.test.example
 │   └── package.json
 │
 ├── docs/
 │   ├── PHASE_2.md                         (this file)
 │   ├── PHASE_2_LOCAL_AUTH.md
 │   ├── PHASE_2_GOOGLE_OAUTH.md
-│   ├── PHASE_2_PROFILE_MANAGEMENT.md
-│   └── current-state_01–03.md
+│   └── PHASE_2_PROFILE_MANAGEMENT.md
 │
 └── README.md
 ```
@@ -121,9 +122,9 @@ auth-template/
 - [x] `ConflictException` on email conflict — message does not reveal existing provider
 - [x] `JWT_SECRET` uses `configService.getOrThrow` — app crashes on startup if unset
 - [x] Mock OAuth server (`scripts/mock-oauth-server.ts`) — per-provider profiles, port 8080
-- [x] Unit tests: auth controller (21), auth service (20), users service (19), strategies = 75+ backend tests
+- [x] Unit tests: auth controller (21), auth service (20), users service (19), strategies = 76 backend tests
+- [x] E2E tests — `api/test/auth.e2e-spec.ts` (27 cases, real test DB)
 - [ ] `POST /auth/logout` endpoint (currently handled client-side only)
-- [ ] E2E tests — `api/test/app.e2e-spec.ts`
 
 ### Frontend (`web/`)
 - [x] LoginForm POSTs to `/auth/login` and `/auth/register`
@@ -134,7 +135,7 @@ auth-template/
 - [x] `AuthProviderButtons` — Google, Facebook, X anchor tags pointing to backend OAuth routes
 - [x] `/auth/callback` page — stores token + cookie on `?token=`, shows error UI on `?error=`
 - [x] Profile page — display name, change password (show/hide, confirm field), connect/disconnect providers, delete account modal
-- [x] Unit tests: LoginForm (15), AuthProviderButtons (6), AuthCallback (7), ProfilePage (16) = 44 frontend tests
+- [x] Unit tests: LoginForm (17), AuthProviderButtons (6), AuthCallback (7), ProfilePage (15) = 45 frontend tests
 
 ### Testing
 - [x] Local email/password login end-to-end
@@ -146,7 +147,7 @@ auth-template/
 - [x] Provider conflict (same email, different provider) handled gracefully
 - [x] Profile management — name update, password change, link/unlink, delete
 - [ ] OAuth flow with real production credentials
-- [ ] E2E guard tests — unauthenticated requests return 401
+- [x] E2E guard tests — unauthenticated requests return 401
 
 ### Documentation
 - [ ] `SETUP.md` — step-by-step to run locally
@@ -233,14 +234,13 @@ Once Phase 2 is stable:
 - `api/` — NestJS; local auth + OAuth (Google, Facebook, X) + full profile management ✅
 - Mock OAuth server on port 8080 for local dev (no real credentials needed) ✅
 - `LinkedProvider` table supports multiple providers per account ✅
-- 75+ backend unit tests + 44 frontend unit tests ✅
+- 76 backend unit tests + 45 frontend unit tests + 27 E2E tests ✅
 - `JWT_SECRET` required at startup via `getOrThrow` — no silent weak default ✅
 - Prisma migrations applied, running in Docker Postgres ✅
 - Workspace on WSL native filesystem ✅
 
 **Next:**
 - Wire up real production credentials
-- E2E tests for auth guard enforcement
 - Write `SETUP.md`
 
 ---
@@ -249,7 +249,7 @@ Once Phase 2 is stable:
 
 ```bash
 # Postgres (Docker)
-docker start edu-ai-db
+docker start auth-db
 
 # Mock OAuth server (terminal 1)
 cd api && npm run mock:oauth
