@@ -234,7 +234,9 @@ export class AuthController {
   @Get('providers')
   async getProviders(@Req() req: AuthedRequest) {
     const links = await this.usersService.getLinkedProviders(req.user.userId);
-    return links.map(({ provider, linkedAt }) => ({ provider, linkedAt }));
+    return links
+      .filter(l => l.provider !== 'local')
+      .map(({ provider, linkedAt }) => ({ provider, linkedAt }));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -242,8 +244,13 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async unlinkProvider(@Req() req: AuthedRequest, @Param('provider') provider: string) {
     const links = await this.usersService.getLinkedProviders(req.user.userId);
+    const isLinked = links.some(l => l.provider === provider);
+    if (!isLinked) {
+      throw new BadRequestException(`Provider ${provider} is not linked to your account.`);
+    }
     const user = await this.usersService.getByEmail(req.user.email);
-    const wouldHaveNoMethod = links.length === 1 && !user?.password;
+    const remainingLinks = links.filter(l => l.provider !== provider && l.provider !== 'local');
+    const wouldHaveNoMethod = remainingLinks.length === 0 && !user?.password;
     if (wouldHaveNoMethod) {
       throw new BadRequestException('Cannot remove your only login method.');
     }

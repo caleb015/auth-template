@@ -54,7 +54,12 @@ export class AuthService {
   }
 
   async register(email: string, password: string) {
-    return this.usersService.createLocalUser(email, password);
+    try {
+      return await this.usersService.createLocalUser(email, password);
+    } catch (err: any) {
+      if (err?.code === 'P2002') throw new ConflictException('An account with this email already exists.');
+      throw err;
+    }
   }
 
   async updateProfile(userId: string, name: string | undefined): Promise<User> {
