@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat -n)",
+      "Bash(npm install *)",
+      "Bash(rm /home/caleb/projects/auth-template/web/.npmrc)",
+      "Bash(git -C /home/caleb/projects/auth-template show HEAD:.claude/settings.json)",
+      "Bash(git -C /home/caleb/projects/auth-template status --short)"
+    ],
+    "additionalDirectories": [
+      "/home/caleb/projects/auth-template/web"
+    ]
+  }
+}

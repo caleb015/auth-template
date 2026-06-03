@@ -2,6 +2,10 @@
 
 A reusable, full-stack authentication template with email/password login, OAuth social login, JWT sessions, and a profile management dashboard. Built to be cloned and customized as the auth foundation for any web app.
 
+## Customization
+
+Before building your app on top of this template, see **[CUSTOMIZATION.md](CUSTOMIZATION.md)** for a full checklist of every place that carries the template's default naming and configuration — including app name, database name, JWT secret, OAuth providers, and ports.
+
 ## Features
 
 - Register and sign in with email + password
@@ -24,8 +28,7 @@ A reusable, full-stack authentication template with email/password login, OAuth 
 ### Prerequisites
 
 - Docker (for Postgres)
-- Node.js 20+ via nvm
-- pnpm (frontend only)
+- Node.js 18+
 
 ### First-time setup
 
@@ -33,12 +36,13 @@ A reusable, full-stack authentication template with email/password login, OAuth 
 # Start Postgres
 docker run --name auth-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=auth_template -p 5432:5432 -d postgres:16
 
-# Run DB migrations
-cd api
-npx prisma migrate deploy
+# Install dependencies
+cd api && npm install
+cd ../web && npm install
 
-# Copy env files
+# Copy env files and run DB migrations
 cp api/.env.example api/.env
+cd api && npx prisma migrate deploy
 ```
 
 ### Starting everything
@@ -62,9 +66,8 @@ npm run start:dev
 
 **Terminal 4 — Frontend** (runs on port 3000)
 ```bash
-nvm use 20
 cd web
-pnpm dev
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -100,9 +103,8 @@ npm run test:e2e
 
 **Frontend unit tests**
 ```bash
-nvm use 20
 cd web
-pnpm test
+npm test
 ```
 
 ## Project Structure
